@@ -1,0 +1,4 @@
+.idea
+*.bin
+.static_analysis
+.lint
