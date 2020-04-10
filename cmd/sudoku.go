@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"sudoku/pkg/sudoku"
+	"sudoku/pkg/xorwow"
+	"time"
 )
 
 const create = "create"
@@ -64,20 +65,29 @@ func mainWithExit() int {
 }
 
 func createSudoku(verbose bool) int {
-	s := sudoku.Sudoku{}
+	rng := xorwow.NewRNG(uint32(time.Now().UnixNano()))
+	s := &sudoku.Sudoku{}
 
-	// optimization: fill one line in the sudoku with a random permutation of numbers from 1 to 9
+	// optimization: fill first line in the sudoku with a random permutation of numbers from 1 to 9
+	var row, column uint8
+	for i := uint8(1); i <= sudoku.Size; i++ {
+		column = uint8(rng.Rand() % sudoku.Size)
+		for s.Table[0][column] != 0 {
+			column = (column + 1) % sudoku.Size
+		}
+		s.Table[0][column] = i
+	}
 
 	// create a solved puzzle
-	_ = s.SolveRandomized()
+	_ = s.SolveRandomized(rng.Rand)
 
 	// try to remove cells until no more removals are possible
 	var tmp uint8
 	var ptr *uint8
 	attempt := 0
 	for attempt < 100 {
-		row := uint8(rand.Uint32() % sudoku.Size)
-		column := uint8(rand.Uint32() % sudoku.Size)
+		row = uint8(rng.Rand() % sudoku.Size)
+		column = uint8(rng.Rand() % sudoku.Size)
 		ptr = &(s.Table[row][column])
 		if *ptr != 0 {
 			tmp = *ptr
@@ -166,13 +176,13 @@ func parseSudoku(reader io.Reader, s *sudoku.Sudoku) error {
 
 func parseChar(b byte) (uint8, error) {
 	// allow ' ' and '.'  as special marker for empty cell in input
-	if b == '.' || b == ' '{
+	if b == '.' || b == ' ' {
 		return 0, nil
 	}
 
 	v := b - '0'
 	if v < 0 || v > 9 {
-		return 0, fmt.Errorf("invalid char %v", b);
+		return 0, fmt.Errorf("invalid char %v", b)
 	}
 
 	return v, nil

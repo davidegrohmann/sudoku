@@ -2,9 +2,9 @@ package dlx
 
 type problem struct {
 	// input
-	rows    uint32
-	columns uint32
-	matrix  [][]uint32
+	rows            uint32
+	columns         uint32
+	matrix          [][]uint32
 	partialSolution []uint32
 
 	// internal
@@ -16,7 +16,7 @@ type problem struct {
 // DLX : dancing link solver interface to solve the defined problem
 type DLX interface {
 	Solve(callback SolutionCallback)
-	SolveRandomized(callback SolutionCallback)
+	SolveRandomized(callback SolutionCallback, randomFunction func() uint32)
 }
 
 func newDLX(matrix [][]uint32) *problem {
@@ -51,8 +51,11 @@ func (d *problem) Solve(callback SolutionCallback) {
 	d.solveInternal(&p, callback)
 }
 
-func (d *problem) SolveRandomized(callback SolutionCallback) {
-	p := randomized{d.columns}
+func (d *problem) SolveRandomized(callback SolutionCallback, randomFunction func() uint32) {
+	p := randomized{
+		columns: d.columns,
+		rf:      randomFunction,
+	}
 	d.solveInternal(&p, callback)
 }
 
@@ -138,7 +141,7 @@ func (d *problem) linkNodes() {
 
 func (d *problem) createHeaders() {
 	var first, last, current *node
-	for i := int64(d.columns) - 1; i >= 0 ; i-- {
+	for i := int64(d.columns) - 1; i >= 0; i-- {
 		current = &node{
 			Row:    -1,
 			Column: i,
@@ -175,7 +178,7 @@ func (d *problem) linkHeaders() {
 
 	for i := uint32(0); i < d.columns; i++ {
 		count = 0
-		for j := int64(d.rows) - 1; j >= 0 ; j-- {
+		for j := int64(d.rows) - 1; j >= 0; j-- {
 			if d.nodes[j][i] != nil {
 				count++
 				first = d.nodes[j][i]

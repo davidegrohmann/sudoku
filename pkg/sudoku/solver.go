@@ -36,7 +36,7 @@ func (s *Sudoku) Check() bool {
 	callback := &checkMultiple{
 		found: 0,
 	}
-	s.solve(callback, false)
+	s.solve(callback, nil)
 	return callback.found == 1
 }
 
@@ -46,17 +46,17 @@ func (s *Sudoku) Solve() bool {
 		table:       &s.Table,
 		hasSolution: false,
 	}
-	s.solve(callback, false)
+	s.solve(callback, nil)
 	return callback.hasSolution
 }
 
 // SolveRandomized : solve the sudoku puzzle with a randomized heuristic (useful when creating new puzzles)
-func (s *Sudoku) SolveRandomized() bool {
+func (s *Sudoku) SolveRandomized(randomFunction func() uint32) bool {
 	callback := &storeFirst{
 		table:       &s.Table,
 		hasSolution: false,
 	}
-	s.solve(callback, true)
+	s.solve(callback, randomFunction)
 	return callback.hasSolution
 }
 
@@ -106,14 +106,14 @@ func (s *Sudoku) createPartialSolution() (result []uint32) {
 	return
 }
 
-func (s *Sudoku) solve(callback dlx.SolutionCallback, randomized bool) {
+func (s *Sudoku) solve(callback dlx.SolutionCallback, randomF func() uint32) {
 	sudokuCoverSet := s.initialize()
 	partialSolution := s.createPartialSolution()
 
 	DLX := dlx.NewDLXWithPartialSolution(sudokuCoverSet, partialSolution)
 
-	if randomized {
-		DLX.SolveRandomized(callback)
+	if randomF != nil {
+		DLX.SolveRandomized(callback, randomF)
 	} else {
 		DLX.Solve(callback)
 	}

@@ -21,9 +21,14 @@ Run
 
 The produced program can be found in the `cmd` folder.
 
-For example, try to execute the following:
+For example, try to execute the following for solving the example sudoku puzzle:
 ```shell script
 cmd/sudoku.bin --verbose --file examples/sudoku.txt
+```
+
+For creating puzzle, run the program with the `create` command (very slow!):
+```shell script
+cmd/sudoku.bin --cmd create
 ```
 
 Instruction on how to use the program can be printed by
