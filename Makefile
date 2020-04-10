@@ -5,7 +5,7 @@ LDFLAGS += -X 'main.buildVersion=$(GIT_VERSION)' -X 'main.buildTime=$(BUILD_TIME
 PACKAGE_PROD_DEPS := $(shell find pkg -name "*.go" | grep -v "_test.go")
 PACKAGE_TEST_DEPS := $(shell find pkg -name "*_test.go")
 
-all: lint build static_analysis
+all: format lint build static_analysis
 .PHONY: all
 
 build: cmd/sudoku.bin
@@ -13,6 +13,14 @@ build: cmd/sudoku.bin
 
 %.bin: %.go $(PACKAGE_PROD_DEPS)
 	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -mod=vendor -o $@ $<
+
+format: .format
+.PHONY: format
+
+.format: $(PACKAGE_PROD_DEPS) $(PACKAGE_TEST_DEPS)
+	gofmt -d -s -e $<
+	gofmt -s -l $< | wc -l | grep "0" >/dev/null
+	touch $@
 
 lint: .lint
 .PHONY: lint
@@ -27,3 +35,7 @@ static_analysis: .static_analysis
 .static_analysis: $(PACKAGE_PROD_DEPS) $(PACKAGE_TEST_DEPS)
 	go vet -mod=vendor ./pkg/... ./cmd/...
 	touch $@
+
+clean:
+	rm -rf .format .lint .static_analysis cmd/*.bin
+.PHONY:clean

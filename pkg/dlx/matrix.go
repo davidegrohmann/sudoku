@@ -3,13 +3,13 @@ package dlx
 import "fmt"
 
 type node struct {
-	Row int64
+	Row    int64
 	Column int64
-	Count uint32
-	Left *node
-	Right *node
-	Up *node
-	Down *node
+	Count  uint32
+	Left   *node
+	Right  *node
+	Up     *node
+	Down   *node
 }
 
 func (n node) isHeader() bool {
@@ -29,7 +29,7 @@ func (s *candidate) addNode(n *node) {
 }
 
 func (s *candidate) removeNode(n *node) {
-	last := len(s.stack) -1
+	last := len(s.stack) - 1
 	if n != s.stack[last] {
 		panic(fmt.Sprintf("Nodes %v and %v do not match", n, s.stack[last]))
 	}
@@ -39,7 +39,7 @@ func (s *candidate) removeNode(n *node) {
 func (s *candidate) notify(callback SolutionCallback) {
 	result := make([]uint32, len(s.stack))
 	j := 0
-	for i := len(s.stack)-1; i >= 0; i-- {
+	for i := len(s.stack) - 1; i >= 0; i-- {
 		result[j] = uint32(s.stack[i].Row)
 		j++
 	}
