@@ -1,7 +1,7 @@
 Sudoku Solver
 =============
 
-Sudoku solver based on Dacing Links algorithm (see [paper](https://arxiv.org/abs/cs/0011047https://arxiv.org/abs/cs/0011047))
+Sudoku solver based on Dacing Links algorithm (see [paper](https://arxiv.org/abs/cs/0011047))
 
 Build
 -----
