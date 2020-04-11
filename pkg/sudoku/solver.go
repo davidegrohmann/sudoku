@@ -8,6 +8,7 @@ import (
 
 // Size : the size of the squared sudoku board
 const Size = 9
+const blockSize = 3
 
 // Sudoku : a sudoku game
 type Sudoku struct {
@@ -36,7 +37,7 @@ func (s *Sudoku) Check() bool {
 	callback := &checkMultiple{
 		found: 0,
 	}
-	s.solve(callback, nil)
+	s.solve(callback)
 	return callback.found == 1
 }
 
@@ -46,17 +47,7 @@ func (s *Sudoku) Solve() bool {
 		table:       &s.Table,
 		hasSolution: false,
 	}
-	s.solve(callback, nil)
-	return callback.hasSolution
-}
-
-// SolveRandomized : solve the sudoku puzzle with a randomized heuristic (useful when creating new puzzles)
-func (s *Sudoku) SolveRandomized(randomFunction func() uint32) bool {
-	callback := &storeFirst{
-		table:       &s.Table,
-		hasSolution: false,
-	}
-	s.solve(callback, randomFunction)
+	s.solve(callback)
 	return callback.hasSolution
 }
 
@@ -106,15 +97,10 @@ func (s *Sudoku) createPartialSolution() (result []uint32) {
 	return
 }
 
-func (s *Sudoku) solve(callback dlx.SolutionCallback, randomF func() uint32) {
+func (s *Sudoku) solve(callback dlx.SolutionCallback) {
 	sudokuCoverSet := s.initialize()
 	partialSolution := s.createPartialSolution()
 
 	DLX := dlx.NewDLXWithPartialSolution(sudokuCoverSet, partialSolution)
-
-	if randomF != nil {
-		DLX.SolveRandomized(callback, randomF)
-	} else {
-		DLX.Solve(callback)
-	}
+	DLX.Solve(callback)
 }

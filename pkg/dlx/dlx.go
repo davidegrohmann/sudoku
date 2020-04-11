@@ -16,7 +16,6 @@ type problem struct {
 // DLX : dancing link solver interface to solve the defined problem
 type DLX interface {
 	Solve(callback SolutionCallback)
-	SolveRandomized(callback SolutionCallback, randomFunction func() uint32)
 }
 
 func newDLX(matrix [][]uint32) *problem {
@@ -48,14 +47,6 @@ func NewDLXWithPartialSolution(matrix [][]uint32, partialSolution []uint32) DLX 
 
 func (d *problem) Solve(callback SolutionCallback) {
 	p := leftmost{}
-	d.solveInternal(&p, callback)
-}
-
-func (d *problem) SolveRandomized(callback SolutionCallback, randomFunction func() uint32) {
-	p := randomized{
-		columns: d.columns,
-		rf:      randomFunction,
-	}
 	d.solveInternal(&p, callback)
 }
 

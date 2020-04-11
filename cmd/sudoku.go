@@ -64,25 +64,67 @@ func mainWithExit() int {
 	}
 }
 
+func randomShuffles(s *sudoku.Sudoku, rng xorwow.RNG, verbose bool) {
+	shuffles := []func(){
+		func() {
+			s.RandomShuffleRows(rng.Rand)
+			if verbose {
+				_, _ = fmt.Fprint(os.Stderr, "Shuffle rows:\n")
+				_ = s.Print(os.Stderr)
+			}
+		},
+		func() {
+			s.RandomShuffleColumns(rng.Rand)
+			if verbose {
+				_, _ = fmt.Fprint(os.Stderr, "Shuffle columns:\n")
+				_ = s.Print(os.Stderr)
+			}
+		}, func() {
+			s.RandomShuffleBlockRows(rng.Rand)
+			if verbose {
+				_, _ = fmt.Fprint(os.Stderr, "Shuffle block rows:\n")
+				_ = s.Print(os.Stderr)
+			}
+		},
+		func() {
+			s.RandomShuffleBlockColumns(rng.Rand)
+			if verbose {
+				_, _ = fmt.Fprint(os.Stderr, "Shuffle block columns:\n")
+				_ = s.Print(os.Stderr)
+			}
+		},
+	}
+
+	length := uint32(len(shuffles))
+	for i := uint32(0); i < length; i++ {
+		tmp := rng.Rand() % length
+		for shuffles[tmp] == nil {
+			tmp = (tmp + 1) % length
+		}
+		shuffles[tmp]()
+		shuffles[tmp] = nil
+	}
+}
+
 func createSudoku(verbose bool) int {
 	rng := xorwow.NewRNG(uint32(time.Now().UnixNano()))
 	s := &sudoku.Sudoku{}
 
-	// optimization: fill first line in the sudoku with a random permutation of numbers from 1 to 9
-	var row, column uint8
-	for i := uint8(1); i <= sudoku.Size; i++ {
-		column = uint8(rng.Rand() % sudoku.Size)
-		for s.Table[0][column] != 0 {
-			column = (column + 1) % sudoku.Size
-		}
-		s.Table[0][column] = i
-	}
+	// optimization: fill first 9 spots in the sudoku with numbers from 1 to 9
+	s.RandomFill(rng.Rand)
 
 	// create a solved puzzle
-	_ = s.SolveRandomized(rng.Rand)
+	_ = s.Solve()
+	if verbose {
+		_, _ = fmt.Fprint(os.Stderr, "Solved to start with:\n")
+		_ = s.Print(os.Stderr)
+	}
+
+	randomShuffles(s, rng, verbose)
 
 	// try to remove cells until no more removals are possible
 	var tmp uint8
+	var row, column uint8
 	var ptr *uint8
 	attempt := 0
 	for attempt < 100 {
@@ -95,8 +137,8 @@ func createSudoku(verbose bool) int {
 			if s.Check() {
 				attempt = 0
 				if verbose {
-					_, _ = fmt.Fprint(os.Stdout, "Intermediate:\n")
-					_ = s.Print(os.Stdout)
+					_, _ = fmt.Fprint(os.Stderr, "Intermediate:\n")
+					_ = s.Print(os.Stderr)
 				}
 			} else {
 				*ptr = tmp
@@ -120,20 +162,21 @@ func solveSudoku(reader io.Reader, verbose bool) (result int) {
 	}
 
 	if verbose {
-		_, _ = fmt.Fprint(os.Stdout, "Input puzzle:\n")
-		_ = s.Print(os.Stdout)
+		_, _ = fmt.Fprint(os.Stderr, "Input puzzle:\n")
+		_ = s.Print(os.Stderr)
 	}
 
 	success := s.Solve()
 
 	if success {
 		_, _ = fmt.Fprint(os.Stdout, "Solved puzzle:\n")
+		_ = s.Print(os.Stdout)
 		result = 0
 	} else {
-		_, _ = fmt.Fprint(os.Stdout, "Unsolvable puzzle:\n")
+		_, _ = fmt.Fprint(os.Stderr, "Unsolvable puzzle:\n")
+		_ = s.Print(os.Stderr)
 		result = 127
 	}
-	_ = s.Print(os.Stdout)
 	return result
 }
 

@@ -18,22 +18,3 @@ func (leftmost) pick(sentinel *node) (result *node) {
 
 	return
 }
-
-type randomized struct {
-	columns uint32
-	rf      func() uint32
-}
-
-func (r randomized) pick(sentinel *node) (result *node) {
-	picked := r.rf() % r.columns
-	result = sentinel
-	for i := uint32(0); i < picked; i++ {
-		result = result.Right
-	}
-
-	if result.isSentinel() {
-		result = result.Right // if we end up on the sentinel move one extra on the right
-	}
-
-	return
-}
