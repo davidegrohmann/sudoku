@@ -158,6 +158,12 @@ func (d *problem) createHeaders() {
 	d.sentinel.Right = first
 	d.sentinel.Left = last
 
+	if last == nil {
+		last = d.sentinel
+	}
+	if first == nil {
+		first = d.sentinel
+	}
 	first.Left = d.sentinel
 	last.Right = d.sentinel
 }
