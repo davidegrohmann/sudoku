@@ -3,3 +3,4 @@
 .static_analysis
 .lint
 .format
+.test
